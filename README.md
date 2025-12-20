@@ -18,16 +18,18 @@ This project demonstrates my ability to:
 - **AI Research Assistant**: Chat with your papers! A local LLM (Llama 3.2) answers questions based on the paper's content.
 - **100% Local**: Runs entirely on your machine—no data leaves your system.
 
-## 🌐 Distributed Architecture (New!)
-MiniVector now supports a **Coordinator-Worker** architecture for horizontal scalability:
-- **Coordinator**: Receives queries, scatters them to workers, and gathers/ranks results.
-- **Workers**: Independent nodes that hold a *shard* of the vector index and perform parallel search.
-- **Sharding**: Data is split across multiple nodes to reduce memory usage per node and increase throughput.
+## 🌐 Distributed Mode
+This project includes a **distributed architecture** that allows the search engine to scale horizontally:
+- The dataset is **split into shards** across multiple worker nodes
+- A **coordinator** receives queries and distributes them to all workers in parallel
+- Results are merged and ranked before being returned
 
-### How to Run (Distributed Mode)
-1. **Split Data**: `python scripts/split_data.py --shards 3`
-2. **Start Cluster**: `python scripts/run_local_cluster.py`
-3. **Test**: `python scripts/test_distributed.py`
+**Quick Start:**
+```bash
+python scripts/split_data.py --shards 3
+python scripts/run_local_cluster.py
+python scripts/test_distributed.py
+```
 
 ## 🛠️ How to Run
 
@@ -74,4 +76,5 @@ Here are some exciting features I plan to implement to push this project further
 - **Distributed Indexing**: Scaling the vector engine to handle millions of documents using sharding.
 
 ---
-*Built with ❤️ by [Your Name]*
+*Built with ❤️ by Genti*
+
