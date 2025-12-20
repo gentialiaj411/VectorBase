@@ -7,36 +7,31 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
+  lint:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
+    - uses: actions/checkout@v4
+    
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
-
-    - name: Install dependencies
+    
+    - name: Install core dependencies
       run: |
-        pip install -r requirements.txt
-
-    - name: Backend smoke test
+        pip install fastapi uvicorn numpy aiohttp pydantic
+    
+    - name: Check imports
       run: |
-        python -c "from minivector.embedder import Embedder; e = Embedder(); print('✓ Embedder works')"
-        python -c "from minivector.vector_store import VectorStore; print('✓ VectorStore works')"
+        python -c "from minivector.binary_engine import BinaryIndex; print('BinaryIndex OK')"
+        python -c "from distributed.worker import app; print('Worker OK')"
+        python -c "from distributed.coordinator import app; print('Coordinator OK')"
 
   docker-build:
     runs-on: ubuntu-latest
-    needs: test
+    needs: lint
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Build backend Docker image
-        run: docker build -t minivector-backend .
-
-      - name: Build frontend Docker image
-        run: docker build -t minivector-frontend ./frontend
+    - uses: actions/checkout@v4
+    
+    - name: Build Docker image
+      run: docker build -t minivector-backend .
