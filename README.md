@@ -18,6 +18,17 @@ This project demonstrates my ability to:
 - **AI Research Assistant**: Chat with your papers! A local LLM (Llama 3.2) answers questions based on the paper's content.
 - **100% Local**: Runs entirely on your machine—no data leaves your system.
 
+## 🌐 Distributed Architecture (New!)
+MiniVector now supports a **Coordinator-Worker** architecture for horizontal scalability:
+- **Coordinator**: Receives queries, scatters them to workers, and gathers/ranks results.
+- **Workers**: Independent nodes that hold a *shard* of the vector index and perform parallel search.
+- **Sharding**: Data is split across multiple nodes to reduce memory usage per node and increase throughput.
+
+### How to Run (Distributed Mode)
+1. **Split Data**: `python scripts/split_data.py --shards 3`
+2. **Start Cluster**: `python scripts/run_local_cluster.py`
+3. **Test**: `python scripts/test_distributed.py`
+
 ## 🛠️ How to Run
 
 ### Prerequisites

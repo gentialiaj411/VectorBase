@@ -7,6 +7,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY api/ ./api/
 COPY minivector/ ./minivector/
+COPY distributed/ ./distributed/
 COPY data/ ./data/
 
 EXPOSE 8000
