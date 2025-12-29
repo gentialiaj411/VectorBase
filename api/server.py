@@ -13,20 +13,45 @@ sys.path.append(str(Path(__file__).parent.parent))
 from minivector.binary_engine import BinaryIndex
 from minivector.embedder import Embedder
 state = {"embedder": None, "engine": None, "metadata": [], "cache": None}
-class SemanticCache:
-    def __init__(self, threshold=0.9):
+class QueryCache:
+    def __init__(self, max_size=1000, similarity_threshold=0.95):
         self.cache = []
-        self.threshold = threshold
+        self.max_size = max_size
+        self.similarity_threshold = similarity_threshold
+        self.hits = 0
+        self.misses = 0
+    def _cosine_similarity(self, vec1, vec2):
+        dot = np.dot(vec1, vec2)
+        norm1 = np.linalg.norm(vec1)
+        norm2 = np.linalg.norm(vec2)
+        return dot / (norm1 * norm2 + 1e-10)
     def lookup(self, query_vec):
+        for cached_vec, cached_results, _ in self.cache:
+            similarity = self._cosine_similarity(query_vec, cached_vec)
+            if similarity >= self.similarity_threshold:
+                self.hits += 1
+                return cached_results
+        self.misses += 1
         return None
-    def store(self, query_vec, response):
-        self.cache.append((query_vec, response))
+    def store(self, query_vec, results):
+        if len(self.cache) >= self.max_size:
+            self.cache.pop(0)
+        self.cache.append((query_vec.copy(), results, time.time()))
+    def get_stats(self):
+        total = self.hits + self.misses
+        hit_rate = (self.hits / total * 100) if total > 0 else 0
+        return {
+            "hits": self.hits,
+            "misses": self.misses,
+            "hit_rate": f"{hit_rate:.1f}%",
+            "cache_size": len(self.cache)
+        }
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("\n🚀 INITIALIZING SERVER...")
     state["embedder"] = Embedder()
     state["engine"] = BinaryIndex()
-    state["cache"] = SemanticCache()
+    state["cache"] = QueryCache()
     try:
         if not Path("data/processed/vectors.npy").exists():
             print("⚠️ Data missing. Run process_data.py")
@@ -52,10 +77,16 @@ async def search(req: SearchRequest):
     if state["engine"].vectors is None: raise HTTPException(500, "Index not loaded")
     t0 = time.time()
     q_vec = state["embedder"].embed_query(req.query)
+    cached_results = state["cache"].lookup(q_vec)
+    if cached_results is not None:
+        t_took = (time.time() - t0) * 1000
+        print(f"⚡ CACHE HIT! Latency: {t_took:.2f}ms")
+        return {"results": cached_results, "took_ms": t_took, "method": "Cached", "cache_hit": True}
     results = state["engine"].search(q_vec, k=req.k)
+    state["cache"].store(q_vec, results)
     t_took = (time.time() - t0) * 1000
     print(f"⏱️ End-to-end latency: {t_took:.2f}ms")
-    return {"results": results, "took_ms": t_took, "method": "Binary Quantization"}
+    return {"results": results, "took_ms": t_took, "method": "Binary Quantization", "cache_hit": False}
 @app.post("/chat")
 async def chat(req: ChatRequest):
     paper = next((p for p in state["metadata"] if p['id'] == req.paper_id), None)
@@ -139,6 +170,9 @@ async def get_graph(doc_id: str):
                     added_ids.add(n_id)
                  if n_id not in visited: queue.append((n_id, depth+1))
     return {"nodes": nodes, "edges": edges}
+@app.get("/cache/stats")
+async def get_cache_stats():
+    return state["cache"].get_stats()
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
