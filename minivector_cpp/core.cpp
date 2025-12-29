@@ -22,7 +22,6 @@
     #define PREFETCH(addr) __builtin_prefetch(addr, 0, 3)
 #endif
 
-// SIMD headers
 #if defined(__AVX2__) || (defined(_MSC_VER) && defined(__AVX2__))
     #include <immintrin.h>
     #define MINIVECTOR_AVX2 1

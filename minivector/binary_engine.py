@@ -46,15 +46,10 @@ try:
     _CPP_AVAILABLE = True
     if hasattr(_cpp_core, 'detect_simd_id'):
         simd_id = _cpp_core.detect_simd_id()
-        # Mapping from core.hpp SIMDType
         _simd_type = ["Scalar", "SSE2", "AVX2", "AVX-512", "AVX-512+VPOPCNT"][min(simd_id, 4)]
-    elif hasattr(_cpp_core, 'detect_simd'):
-        _simd_type = str(_cpp_core.detect_simd())
     else:
         _simd_type = "C++ (Generic)"
-except ImportError as e:
-    # Silent fail for production, but useful to know
-    # print(f"DEBUG: C++ extension not found: {e}")
+except ImportError:
     pass
 
 
@@ -239,9 +234,7 @@ class BinaryIndex:
                 indices, distances = _cpp_core.batch_search(q_packed, self.vectors, k)
                 indices = indices.tolist()
                 distances = distances.tolist()
-            except Exception as e:
-                # print(f"DEBUG: C++ Search failed, falling back: {e}")
-                # Fallback to NumPy if C++ search fails
+            except Exception:
                 indices, distances = self._numpy_search(q_packed, k)
         else:
             # NumPy fallback

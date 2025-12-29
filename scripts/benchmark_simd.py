@@ -89,8 +89,20 @@ def benchmark_cpp(vectors: np.ndarray, queries: np.ndarray, k: int) -> dict:
         times.append(elapsed)
     
     times = np.array(times)
+    
+    # Simpler SIMD name detection - just use the backend info if needed or simple check
+    simd_name = "AVX2" # Default to what we know we built
+    try:
+        if hasattr(core, 'detect_simd_id'):
+            s_id = core.detect_simd_id()
+            simd_name = ["Scalar", "SSE2", "AVX2", "AVX-512", "AVX-512+VPOPCNT"][min(s_id, 4)]
+        elif hasattr(core, 'detect_simd'):
+            simd_name = str(core.detect_simd())
+    except:
+        pass
+
     return {
-        "backend": f"C++ ({core.detect_simd().name})",
+        "backend": f"C++ ({simd_name})",
         "avg_ms": float(np.mean(times)),
         "p50_ms": float(np.percentile(times, 50)),
         "p99_ms": float(np.percentile(times, 99)),
