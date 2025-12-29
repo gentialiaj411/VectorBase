@@ -1,32 +1,23 @@
-// frontend/src/CitationGraph.js
 import React, { useEffect, useState } from 'react';
 import ReactFlow, { Background, Controls, MiniMap } from 'reactflow';
 import 'reactflow/dist/style.css';
-
 export default function CitationGraph({ paperId, onClose }) {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     if (!paperId) return;
-    
     setLoading(true);
-    fetch(`http://localhost:8000/graph/${paperId}?depth=1`)
+    fetch(`http: 
       .then(res => res.json())
       .then(data => {
-        // Convert to ReactFlow format with circular layout
         const centerNode = data.nodes.find(n => n.isCenter);
         const otherNodes = data.nodes.filter(n => !n.isCenter);
-        
         const flowNodes = data.nodes.map((node, i) => {
           let position;
-          
           if (node.isCenter) {
-            // Center position
             position = { x: 400, y: 300 };
           } else {
-            // Circular layout around center
             const angle = (2 * Math.PI * i) / otherNodes.length;
             const radius = 250;
             position = {
@@ -34,7 +25,6 @@ export default function CitationGraph({ paperId, onClose }) {
               y: 300 + radius * Math.sin(angle)
             };
           }
-          
           return {
             id: node.id,
             data: { 
@@ -76,7 +66,6 @@ export default function CitationGraph({ paperId, onClose }) {
             }
           };
         });
-        
         const flowEdges = data.edges.map((edge, i) => ({
           id: `e-${i}`,
           source: edge.source,
@@ -87,7 +76,6 @@ export default function CitationGraph({ paperId, onClose }) {
             strokeWidth: 2
           }
         }));
-
         setNodes(flowNodes);
         setEdges(flowEdges);
         setLoading(false);
@@ -97,7 +85,6 @@ export default function CitationGraph({ paperId, onClose }) {
         setLoading(false);
       });
   }, [paperId]);
-
   if (loading) {
     return (
       <div style={{ 
@@ -112,7 +99,6 @@ export default function CitationGraph({ paperId, onClose }) {
       </div>
     );
   }
-
   return (
     <div style={{ height: '600px', background: '#f8fafc' }}>
       <div style={{ 
@@ -151,7 +137,6 @@ export default function CitationGraph({ paperId, onClose }) {
           Close
         </button>
       </div>
-      
       <div style={{ height: 'calc(100% - 80px)' }}>
         <ReactFlow 
           nodes={nodes} 

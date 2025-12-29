@@ -1,5 +1,4 @@
 from pathlib import Path
-
 BASE_DIR = Path(__file__).parent.parent
 FAISS_INDEX_PATH = BASE_DIR / "data/indices/faiss.index"
 METADATA_PATH = BASE_DIR / "data/processed/metadata.json"

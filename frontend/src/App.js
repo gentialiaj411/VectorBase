@@ -3,13 +3,10 @@ import axios from "axios";
 import ReactFlow, { Background, Controls, MiniMap, useNodesState, useEdgesState } from 'reactflow';
 import 'reactflow/dist/style.css';
 import './App.css';
-
 const API_URL = "http://localhost:8000";
-
 function CitationGraph({ paperId, onNodeClick }) {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-
   useEffect(() => {
     if(!paperId) return;
     fetch(`${API_URL}/graph/${paperId}`)
@@ -18,7 +15,6 @@ function CitationGraph({ paperId, onNodeClick }) {
         const unique = new Map();
         data.nodes.forEach(n => unique.set(n.id, n));
         const nodeList = Array.from(unique.values());
-        
         const flowNodes = nodeList.map((n, i) => {
             const isCenter = n.id === paperId;
             const angle = (i / nodeList.length) * 2 * Math.PI;
@@ -39,20 +35,16 @@ function CitationGraph({ paperId, onNodeClick }) {
                 }
             };
         });
-        
         const flowEdges = data.edges.map((e, i) => ({ 
             id: `e${i}`, source: e.source, target: e.target, animated: true, style: { stroke: '#444' } 
         }));
-        
         setNodes(flowNodes);
         setEdges(flowEdges);
       });
   }, [paperId, setNodes, setEdges]);
-
   const handleNodeClick = useCallback((event, node) => {
       if (onNodeClick) onNodeClick(node.id);
   }, [onNodeClick]);
-
   return (
     <div style={{width:'100%', height:'100%'}}>
         <ReactFlow nodes={nodes} edges={edges} onNodeClick={handleNodeClick} fitView minZoom={0.1}>
@@ -63,7 +55,6 @@ function CitationGraph({ paperId, onNodeClick }) {
     </div>
   );
 }
-
 function App() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
@@ -72,7 +63,6 @@ function App() {
   const [chat, setChat] = useState([]);
   const [msg, setMsg] = useState("");
   const [meta, setMeta] = useState(null);
-
   const search = async () => {
     if (!query) return;
     try {
@@ -81,7 +71,6 @@ function App() {
         setMeta({ latency: res.data.took_ms, method: res.data.method });
     } catch (e) { alert("Backend Offline"); }
   };
-
   const openPaper = async (id) => {
     try {
         const res = await axios.get(`${API_URL}/article/${id}`);
@@ -90,34 +79,26 @@ function App() {
         setChat([{ role: 'ai', text: `System ready. Analyzing "${res.data.title}"...`}]);
     } catch(e) { console.error(e); }
   };
-
   const sendChat = async () => {
     if (!msg) return;
     const newChat = [...chat, { role: 'user', text: msg }];
     setChat(newChat);
     setMsg("");
-    
     try {
-
         setChat(prev => [...prev, { role: 'ai', text: "..." }]);
-        
         const response = await fetch(`${API_URL}/chat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ paper_id: paper.id, message: msg })
         });
-
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let aiText = "";
-
         while (true) {
             const { done, value } = await reader.read();
             if (done) break;
             const chunk = decoder.decode(value, { stream: true });
             aiText += chunk;
-            
-
             setChat(prev => {
                 const updated = [...prev];
                 updated[updated.length - 1] = { role: 'ai', text: aiText };
@@ -126,28 +107,23 @@ function App() {
         }
     } catch (e) { console.error(e); }
   };
-
   const getAbstract = (p) => p.abstract || p.text || "No abstract available.";
-
   return (
     <div className="App">
       <div className="header container">
         <div className="brand">MiniVector <span className="badge">V2.0 QUANT</span></div>
         <div style={{color: '#666', fontFamily: 'monospace'}}>SYSTEM: ONLINE</div>
       </div>
-
       <div className="container">
         <div className="search-box">
             <input value={query} onChange={e => setQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && search()} placeholder="> INPUT SEARCH QUERY" autoFocus />
         </div>
-
         {meta && (
             <div className="stats-bar">
                 <span>FOUND {results.length} RESULTS IN <span style={{color: '#fff'}}>{meta.latency.toFixed(0)}ms</span></span>
                 <span className="method-tag">{meta.method}</span>
             </div>
         )}
-
         <div className="grid">
             {results.map(r => (
                 <div key={r.id} className="card" onClick={() => openPaper(r.id)}>
@@ -163,7 +139,6 @@ function App() {
             ))}
         </div>
       </div>
-
       {paper && (
         <div className="overlay" onClick={() => setPaper(null)}>
             {viewMode === 'preview' ? (
@@ -180,7 +155,7 @@ function App() {
                     </div>
                     <div className="action-bar">
                         {paper.arxiv_id && (
-                            <a href={`https://arxiv.org/pdf/${paper.arxiv_id}.pdf`} target="_blank" rel="noopener noreferrer" className="btn secondary">
+                            <a href={`https: 
                                 📄 VIEW PDF
                             </a>
                         )}
@@ -204,12 +179,10 @@ function App() {
                         <p style={{lineHeight:1.6, color:'#ccc', fontSize: '0.95rem'}}>{getAbstract(paper)}</p>
                         <button onClick={() => setViewMode('preview')} className="close-btn">BACK TO PREVIEW</button>
                     </div>
-                    
                     <div className="graph-col">
                         <div className="graph-header"><span className="badge">CITATION TOPOLOGY</span></div>
                         <CitationGraph paperId={paper.id} onNodeClick={openPaper} />
                     </div>
-
                     <div className="chat-col">
                         <div className="chat-header">AI ASSISTANT</div>
                         <div className="chat-feed">
@@ -227,5 +200,4 @@ function App() {
     </div>
   );
 }
-
 export default App;
