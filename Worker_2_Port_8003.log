@@ -1,0 +1,7 @@
+INFO:     Started server process [12364]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8003 (Press CTRL+C to quit)
+Worker 2: Loading shard...
+Worker 2: Loaded 3332 vectors.
+INFO:     127.0.0.1:11138 - "POST /search HTTP/1.1" 200 OK

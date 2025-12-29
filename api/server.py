@@ -12,14 +12,17 @@ import requests
 
 
 sys.path.append(str(Path(__file__).parent.parent))
+from minivector.binary_engine import BinaryIndex
 from minivector.embedder import Embedder
-from minivector.binary_engine import BinaryIndex 
 
 state = {"embedder": None, "engine": None, "metadata": [], "cache": None}
 
 class SemanticCache:
     def __init__(self, threshold=0.9):
-            return self.cache[best_idx][1]
+        self.cache = []
+        self.threshold = threshold
+
+    def lookup(self, query_vec):
         return None
 
     def store(self, query_vec, response):

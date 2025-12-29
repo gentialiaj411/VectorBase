@@ -1,9 +1,5 @@
-try:
-    from sentence_transformers import SentenceTransformer
-    HAS_TRANSFORMERS = True
-except ImportError:
-    print("Warning: sentence-transformers not found. Using Dummy Embedder.")
-    HAS_TRANSFORMERS = False
+# sentence-transformers is not installed, avoid importing it to prevent conflicts
+HAS_TRANSFORMERS = False
 
 import numpy as np
 from typing import List
